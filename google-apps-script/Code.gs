@@ -26,20 +26,24 @@ function doPost(e) {
     var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
 
     var payload = JSON.parse(e.postData.contents);
+    var meta = payload.meta || {};
     var flat = flatten(payload.answers || {});
+    var sessionId = meta.sessionId || '';
+    var status = meta.status || 'complete';   // 'partial' (live save) or 'complete' (submitted)
 
     // ----- header row (auto-grows with new questions) -----
+    var BASE = ['timestamp', 'status', 'sessionId', 'business_name'];
     var headers = sheet.getLastRow() === 0
       ? []
       : sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
     if (headers.length === 0) {
-      headers = ['timestamp', 'business_name'].concat(Object.keys(flat));
+      headers = BASE.concat(Object.keys(flat));
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       sheet.setFrozenRows(1);
     } else {
       var added = false;
-      Object.keys(flat).forEach(function (k) {
+      BASE.concat(Object.keys(flat)).forEach(function (k) {
         if (headers.indexOf(k) === -1) { headers.push(k); added = true; }
       });
       if (added) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -48,12 +52,29 @@ function doPost(e) {
     // ----- build the row in header order -----
     var row = headers.map(function (h) {
       if (h === 'timestamp') return new Date();
+      if (h === 'status') return status;
+      if (h === 'sessionId') return sessionId;
       if (h === 'business_name') return flat['biz_name'] || '';
       return flat[h] !== undefined ? flat[h] : '';
     });
-    sheet.appendRow(row);
 
-    return json({ result: 'success', row: sheet.getLastRow() });
+    // ----- upsert: update this person's existing row, or add a new one -----
+    var targetRow = 0;
+    var sidCol = headers.indexOf('sessionId');
+    if (sessionId && sidCol !== -1 && sheet.getLastRow() > 1) {
+      var ids = sheet.getRange(2, sidCol + 1, sheet.getLastRow() - 1, 1).getValues();
+      for (var i = 0; i < ids.length; i++) {
+        if (ids[i][0] === sessionId) { targetRow = i + 2; break; }
+      }
+    }
+    if (targetRow) {
+      sheet.getRange(targetRow, 1, 1, row.length).setValues([row]);
+    } else {
+      sheet.appendRow(row);
+      targetRow = sheet.getLastRow();
+    }
+
+    return json({ result: 'success', row: targetRow, status: status });
   } catch (err) {
     return json({ result: 'error', error: String(err) });
   } finally {

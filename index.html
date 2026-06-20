@@ -45,7 +45,24 @@
     padding:12px 18px;font-size:13px;color:var(--muted);
   }
   .topbar .brand{font-weight:700;color:var(--ink)}
+  .topbar .tb-right{display:flex;align-items:center;gap:12px}
   .topbar .count{font-variant-numeric:tabular-nums}
+  .tb-export{
+    display:none;font-family:var(--font);font-size:13px;font-weight:650;cursor:pointer;
+    background:#fff;border:1.5px solid var(--line);color:var(--ink);border-radius:9px;padding:6px 12px;
+  }
+  .tb-export:hover{border-color:var(--brand);color:var(--brand)}
+  .export-menu{
+    display:none;position:fixed;top:46px;right:14px;z-index:60;
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:6px;min-width:220px;
+  }
+  .export-menu.open{display:block;animation:rise .15s ease}
+  .export-menu button{
+    display:block;width:100%;text-align:left;background:none;border:none;
+    font-family:var(--font);font-size:14px;color:var(--ink);padding:11px 12px;border-radius:8px;cursor:pointer;
+  }
+  .export-menu button:hover{background:var(--brand-soft)}
 
   /* Stage */
   .stage{
@@ -159,7 +176,16 @@
   <div class="progress-wrap"><div class="progress-bar" id="bar"></div></div>
   <div class="topbar">
     <span class="brand">Figgle&nbsp;Media</span>
-    <span class="count" id="count"></span>
+    <span class="tb-right">
+      <span class="count" id="count"></span>
+      <button class="tb-export" id="exportBtn" onclick="toggleExport(event)">Export ▾</button>
+    </span>
+  </div>
+
+  <div class="export-menu" id="exportMenu">
+    <button onclick="closeExport();copyPrompt()">✨ Copy ChatGPT prompt</button>
+    <button onclick="closeExport();downloadJSON()">⬇ Download all answers</button>
+    <button onclick="closeExport();copyJSON()">📋 Copy answers (JSON)</button>
   </div>
 
   <div class="stage"><div class="card" id="card"></div></div>
@@ -444,6 +470,7 @@ function render(){
   const pct = q.type==="end" ? 100 : Math.round((answeredCount/reals.length)*100);
   barEl.style.width=pct+"%";
   countEl.textContent = isMeta(q.type) ? "" : `${idx+1} / ${reals.length}`;
+  document.getElementById("exportBtn").style.display = (q.type==="welcome") ? "none" : "inline-block";
 
   if(q.type==="welcome")  return renderWelcome(q);
   if(q.type==="review")   return renderReview(q);
@@ -585,7 +612,7 @@ async function submitForm(){
       method:"POST",
       mode:"no-cors",                      // Apps Script: simple request, no CORS preflight
       headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify(buildJSON())
+      body:JSON.stringify(buildJSON("complete"))
     });
     state.submitState="success";
   }catch(e){
@@ -679,9 +706,10 @@ function displayAnswer(q){
 }
 
 /* clean JSON object grouped by section */
-function buildJSON(){
+function buildJSON(status){
   const flow=buildFlow().filter(x=>!isMeta(x.type));
-  const out={ meta:{ form:"Carpenter / Home Builder Business Intake", generated:new Date().toISOString() }, answers:{} };
+  const out={ meta:{ form:"Carpenter / Home Builder Business Intake",
+    sessionId:getSessionId(), status:status||"complete", generated:new Date().toISOString() }, answers:{} };
   for(const sec in SECTIONS) out.answers[sec]={};
   flow.forEach(q=>{
     let v=state.answers[q.id];
@@ -749,8 +777,45 @@ function flash(msg){ toastEl.textContent=msg; toastEl.classList.add("show"); set
 function escHtml(s){ return (s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 function escAttr(s){ return (s==null?"":String(s)).replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 function escJs(s){ return (s==null?"":String(s)).replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
-function save(){ try{ localStorage.setItem("carpenterIntake",JSON.stringify(state)); }catch(e){} }
+function save(){ try{ localStorage.setItem("carpenterIntake",JSON.stringify(state)); }catch(e){} scheduleSync(); }
 function load(){ try{ const s=localStorage.getItem("carpenterIntake"); if(s){ const p=JSON.parse(s); state.answers=p.answers||{}; state.currentId=p.currentId||"welcome"; } }catch(e){} }
+
+/* one stable id per person so the sheet updates ONE row instead of adding new ones */
+function getSessionId(){
+  let id=localStorage.getItem("carpenterSession");
+  if(!id){
+    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+       : "s"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+    localStorage.setItem("carpenterSession",id);
+  }
+  return id;
+}
+
+/* live save to the Google Sheet after each answer (debounced, silent) */
+let syncTimer=null;
+function scheduleSync(){
+  if(!WEBHOOK_URL) return;
+  if(Object.keys(state.answers).length===0) return;   // nothing to save yet
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>pushToSheet("partial"),1500);
+}
+function pushToSheet(status){
+  if(!WEBHOOK_URL) return;
+  try{
+    fetch(WEBHOOK_URL,{
+      method:"POST",mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify(buildJSON(status))
+    }).catch(()=>{});   // silent — localStorage is the safety net
+  }catch(e){}
+}
+
+/* ---- Export menu (available on every screen) ---- */
+function toggleExport(e){ if(e) e.stopPropagation(); document.getElementById("exportMenu").classList.toggle("open"); }
+function closeExport(){ document.getElementById("exportMenu").classList.remove("open"); }
+document.addEventListener("click",e=>{
+  if(!e.target.closest("#exportMenu") && !e.target.closest("#exportBtn")) closeExport();
+});
 
 // keyboard: A/B/C... to pick single options
 document.addEventListener("keydown",e=>{
