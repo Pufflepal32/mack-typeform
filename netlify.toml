@@ -1,0 +1,9 @@
+# Netlify config — static site, no build step.
+[build]
+  publish = "."
+
+# Serve the form at the site root.
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200

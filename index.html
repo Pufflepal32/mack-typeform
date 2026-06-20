@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Carpenter / Home Builder Business Intake</title>
+<style>
+  :root{
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --ink:#15171c;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --brand:#1f6feb;
+    --brand-dark:#1657c0;
+    --brand-soft:#eaf1ff;
+    --good:#16a34a;
+    --radius:18px;
+    --shadow:0 10px 30px rgba(16,24,40,.08), 0 2px 8px rgba(16,24,40,.04);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+
+  /* Progress */
+  .progress-wrap{
+    position:fixed;top:0;left:0;right:0;height:6px;
+    background:var(--line);z-index:50;
+  }
+  .progress-bar{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--brand),#4f93ff);
+    transition:width .35s ease;
+  }
+  .topbar{
+    position:fixed;top:6px;left:0;right:0;z-index:40;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 18px;font-size:13px;color:var(--muted);
+  }
+  .topbar .brand{font-weight:700;color:var(--ink)}
+  .topbar .count{font-variant-numeric:tabular-nums}
+
+  /* Stage */
+  .stage{
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:84px 18px 110px;
+  }
+  .card{
+    width:100%;max-width:680px;
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:34px 30px 30px;
+    animation:rise .35s ease;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .section-tag{
+    display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--brand);
+    background:var(--brand-soft);padding:5px 10px;border-radius:999px;margin-bottom:16px;
+  }
+  .q-title{font-size:26px;font-weight:750;letter-spacing:-.01em;margin:0 0 6px}
+  .q-help{color:var(--muted);font-size:15px;margin:0 0 22px}
+  .q-help.examples{background:#f9fafb;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+
+  /* Inputs */
+  input[type=text],input[type=tel],input[type=email],input[type=url],textarea{
+    width:100%;font-family:var(--font);font-size:18px;color:var(--ink);
+    border:2px solid var(--line);border-radius:12px;padding:14px 15px;background:#fff;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  textarea{min-height:120px;resize:vertical;line-height:1.5}
+  input:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+
+  /* Options */
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    display:flex;align-items:center;gap:12px;
+    border:2px solid var(--line);border-radius:12px;
+    padding:14px 15px;cursor:pointer;font-size:17px;
+    background:#fff;transition:.12s;user-select:none;
+  }
+  .opt:hover{border-color:#c9d4e5;background:#fbfdff}
+  .opt.selected{border-color:var(--brand);background:var(--brand-soft)}
+  .opt .key{
+    flex:0 0 auto;width:26px;height:26px;border-radius:7px;border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--muted);
+  }
+  .opt.selected .key{background:var(--brand);border-color:var(--brand);color:#fff}
+  .opt.notsure{border-style:dashed}
+  .opt-other-input{margin-top:6px}
+
+  .hint{font-size:13px;color:var(--muted);margin-top:14px}
+
+  /* Nav */
+  .nav{
+    position:fixed;bottom:0;left:0;right:0;z-index:40;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,rgba(246,247,249,0),var(--bg) 28%);
+  }
+  .btn{
+    font-family:var(--font);font-size:16px;font-weight:650;
+    border:none;border-radius:12px;padding:13px 22px;cursor:pointer;transition:.15s;
+  }
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-primary:hover{background:var(--brand-dark)}
+  .btn-primary:disabled{opacity:.45;cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--muted);font-weight:600}
+  .btn-ghost:hover{color:var(--ink)}
+  .btn-skip{background:#fff;border:1.5px dashed var(--line);color:var(--muted);font-weight:600}
+  .btn-skip:hover{border-color:#c9d4e5;color:var(--ink)}
+  .nav-right{display:flex;gap:10px;align-items:center}
+  .enter-hint{font-size:12px;color:var(--muted)}
+  @media(max-width:520px){.enter-hint{display:none}}
+
+  /* Welcome / End */
+  .center{text-align:center}
+  .big-title{font-size:34px;font-weight:800;letter-spacing:-.02em;margin:6px 0 12px}
+  .lead{font-size:18px;color:var(--muted);max-width:520px;margin:0 auto 26px}
+  .emoji{font-size:46px;margin-bottom:6px}
+  .btn-lg{font-size:18px;padding:16px 34px}
+
+  /* Review */
+  .review-group{margin-bottom:22px}
+  .review-group h3{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--brand);margin:0 0 10px}
+  .review-item{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .review-item .ri-q{color:var(--muted);font-size:14px;max-width:55%}
+  .review-item .ri-a{font-weight:600;font-size:15px;text-align:right;max-width:45%}
+  .review-item .ri-a.unsure{color:#b45309;font-weight:600}
+  .review-item .edit{background:none;border:none;color:var(--brand);font-size:13px;cursor:pointer;font-weight:600}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+  .toast{
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.2s;z-index:60;
+  }
+  .toast.show{opacity:1}
+  .output-box{
+    width:100%;margin-top:18px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:13px;border:1px solid var(--line);border-radius:12px;padding:14px;background:#0f172a;color:#e2e8f0;
+    min-height:240px;white-space:pre-wrap;
+  }
+  .grid-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.grid-btns{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="progress-wrap"><div class="progress-bar" id="bar"></div></div>
+  <div class="topbar">
+    <span class="brand">Figgle&nbsp;Media</span>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="stage"><div class="card" id="card"></div></div>
+
+  <div class="nav" id="nav"></div>
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   1) DATA MODEL — every question is one card (Typeform-style)
+   ============================================================ */
+
+const MAJOR_SERVICES = [
+  "Custom homes","Home additions","Whole-home remodeling","Kitchen remodeling",
+  "Bathroom remodeling","Basement finishing","Decks","Outdoor living spaces","Custom cabinets"
+];
+
+// helper to build a question
+const Q = (id, section, type, label, opts={}) => ({id, section, type, label, ...opts});
+
+// Section metadata (used for tags + review grouping + prompt grouping)
+const SECTIONS = {
+  basics:"Business Basics", type:"Business Type", services:"Services Offered",
+  customer:"Ideal Customer", seo:"Location & SEO", proof:"Proof & Trust",
+  brand:"Brand Positioning", offers:"Offers & Conversion", project:"Project Details",
+  sales:"Sales Process", content:"Website Content", faq:"Customer Questions / FAQ",
+  competitors:"Competitors & Inspiration", final:"Final Notes"
+};
+
+const QUESTIONS = [
+  // ---- WELCOME ----
+  Q("welcome","", "welcome", "Carpenter / Home Builder Business Intake", {
+    subtitle:"Answer what you can. If you're not sure, choose “I'm not sure” and we'll figure it out later."
+  }),
+
+  // ---- 2) BUSINESS BASICS ----
+  Q("biz_name","basics","short","What's your business name?",{placeholder:"e.g. Oakridge Custom Builders"}),
+  Q("owner_name","basics","short","What's your name?",{placeholder:"Owner / main contact"}),
+  Q("phone","basics","tel","Best phone number?",{placeholder:"(704) 555-0123",notSureBtn:true}),
+  Q("email","basics","email","Best email?",{placeholder:"you@business.com",notSureBtn:true}),
+  Q("website","basics","url","Do you have a website? Paste the link.",{placeholder:"https://...",notSureBtn:true,skipLabel:"No website yet"}),
+  Q("city_state","basics","short","What city and state is your main office in?",{placeholder:"e.g. Charlotte, NC"}),
+  Q("years_in_business","basics","single","How long have you been in business?",{
+    options:["Less than 1 year","1–3 years","3–5 years","5–10 years","10–20 years","20+ years"],notSure:true}),
+  Q("licensed","basics","single","Are you licensed?",{options:["Yes","No"],notSure:true}),
+  Q("insured","basics","single","Are you insured?",{options:["Yes","No"],notSure:true}),
+  Q("license_number","basics","short","What's your contractor license number?",{placeholder:"License #",notSureBtn:true,skipLabel:"Don't have one"}),
+  Q("company_size","basics","single","Are you a solo operator, a small crew, or a larger company?",{
+    options:["Solo operator","Small crew (2–5)","Mid-size (6–15)","Larger company (15+)"],notSure:true}),
+  Q("service_areas","basics","long","What cities or areas do you serve?",{placeholder:"List the towns / counties you cover"}),
+  Q("expand_areas","basics","long","Any new areas you want to expand into?",{placeholder:"Where would you like more leads from?",notSureBtn:true}),
+
+  // ---- 3) BUSINESS TYPE ----
+  Q("biz_type","type","single","Which best describes your business?",{
+    options:["Custom home builder","General contractor","Finish carpenter","Framing carpenter",
+      "Deck builder","Remodeler","Trim / interior carpenter","Cabinet / built-in specialist"],
+    other:true,notSure:true}),
+  Q("res_or_comm","type","single","Do you focus more on residential or commercial?",{
+    options:["Mostly residential","Mostly commercial","Both equally"],notSure:true}),
+  Q("new_or_remodel","type","single","Do you work on new construction, remodeling, or both?",{
+    options:["New construction","Remodeling","Both"],notSure:true}),
+  Q("jobs_want","type","long","What kind of jobs do you want MORE of?",{placeholder:"Your favorite / most profitable work"}),
+  Q("jobs_avoid","type","long","What kind of jobs do you NOT want?",{placeholder:"Work you'd rather turn down",notSureBtn:true}),
+
+  // ---- 4) SERVICES ----
+  Q("services","services","multi","Which services do you offer? (Pick all that apply)",{
+    options:["Custom homes","Home additions","Whole-home remodeling","Kitchen remodeling","Bathroom remodeling",
+      "Basement finishing","Framing","Decks","Porches","Pergolas","Siding","Trim carpentry","Crown molding",
+      "Baseboards","Wainscoting","Built-ins","Custom cabinets","Stair work","Doors","Window trim",
+      "Outdoor living spaces","Garages","Shops / barns","Repairs"],
+    other:true,notSure:true,
+    help:"We'll ask a few quick follow-ups on your bigger services."}),
+
+  // [ per-service follow-up loop inserted here at runtime ]
+  {id:"__service_loop__", type:"service-loop"},
+
+  // Deck-specific conditional follow-ups (example of conditional logic)
+  Q("deck_materials","services","multi","For decks — what materials do you build with?",{
+    options:["Pressure-treated wood","Cedar","Composite (Trex, etc.)","PVC","Exotic hardwood"],notSure:true,
+    condition:a => arr(a.services).includes("Decks")}),
+  Q("deck_features","services","multi","For decks — what features do you commonly build?",{
+    options:["Railings","Built-in seating","Lighting","Multi-level","Attached pergola","Stairs","Privacy walls"],notSure:true,
+    condition:a => arr(a.services).includes("Decks")}),
+  Q("deck_permits","services","single","For decks — do you handle the permits?",{
+    options:["Yes, always","Sometimes","No, customer handles it"],notSure:true,
+    condition:a => arr(a.services).includes("Decks")}),
+
+  // ---- 5) IDEAL CUSTOMER ----
+  Q("ideal_customer","customer","multi","Who is your ideal customer?",{
+    options:["Homeowner","Property investor","Builder","Realtor","Business owner","Developer"],other:true,notSure:true}),
+  Q("customer_like","customer","long","What type of customer do you like working with most?"),
+  Q("customer_avoid","customer","long","What type of customer do you want to avoid?",{notSureBtn:true}),
+  Q("budget_range","customer","single","What's the usual customer budget range?",{
+    options:["Under $5k","$5k–$25k","$25k–$75k","$75k–$200k","$200k+","Varies a lot"],notSure:true}),
+  Q("price_or_quality","customer","single","Are your customers usually price shoppers or quality-focused?",{
+    options:["Mostly price shoppers","Mostly quality-focused","A mix of both"],notSure:true}),
+  Q("customer_cares","customer","multi","What do your customers care about most?",{
+    options:["Price","Speed","Quality","Communication","Clean jobsite","Trust","Design help","Warranty"],notSure:true}),
+
+  // ---- 6) LOCATION / SEO ----
+  Q("main_city","seo","short","What's the main city you want to rank in on Google?",{placeholder:"e.g. Charlotte, NC"}),
+  Q("other_cities","seo","long","What other cities do you want leads from?",{notSureBtn:true}),
+  Q("physical_office","seo","single","Do you have a physical office or showroom customers can visit?",{
+    options:["Yes","No","Home-based / by appointment"],notSure:true}),
+  Q("want_city_pages","seo","single","Do you want individual city pages created (one per town)?",{
+    options:["Yes","No","Maybe"],notSure:true}),
+  Q("search_terms","seo","multi","What do you think customers type into Google to find you?",{
+    options:["custom home builder near me","carpenter near me","deck builder near me",
+      "home addition contractor","remodeling contractor","trim carpenter","kitchen remodeler near me"],
+    other:true,notSure:true,help:"Pick the ones that fit, add your own."}),
+  Q("top_competitors","seo","long","Who are your top local competitors?",{placeholder:"Names or websites",notSureBtn:true}),
+  Q("competitor_sites","seo","long","Any competitor websites you like or dislike? Tell us why.",{notSureBtn:true}),
+
+  // ---- 7) PROOF / TRUST ----
+  Q("review_count","proof","single","About how many reviews do you have?",{
+    options:["None yet","1–10","10–25","25–50","50–100","100+"],notSure:true}),
+  Q("review_platforms","proof","multi","Where are your reviews?",{
+    options:["Google","Facebook","Yelp","Houzz","Angi","BBB"],other:true,notSure:true}),
+  Q("before_after","proof","single","Do you have before/after photos?",{options:["Yes, lots","Some","No"],notSure:true}),
+  Q("project_photos","proof","single","Do you have finished project photos?",{options:["Yes, lots","Some","No"],notSure:true}),
+  Q("video","proof","single","Do you have any video footage?",{options:["Yes","No"],notSure:true}),
+  Q("testimonials","proof","single","Do you have written or video testimonials?",{options:["Yes","No"],notSure:true}),
+  Q("awards","proof","long","Any awards, badges, associations, or certifications?",{notSureBtn:true}),
+  Q("warranty","proof","single","Do you offer a warranty?",{options:["Yes","No"],notSure:true}),
+  Q("permits","proof","single","Do you pull permits?",{options:["Yes, always","Sometimes","No"],notSure:true}),
+  Q("subcontractors","proof","single","Do you use subcontractors?",{options:["Yes","No","Sometimes"],notSure:true}),
+  Q("cleanup","proof","single","Do you clean up after every job?",{options:["Yes, always","Most of the time","No"],notSure:true}),
+  Q("proof_to_see","proof","long","What proof should a customer see before they call you?",{notSureBtn:true}),
+
+  // ---- 8) BRAND POSITIONING ----
+  Q("brand_think","brand","multi","When someone lands on your website, what should they think?",{
+    options:["High-end builder","Reliable local contractor","Affordable and honest","Luxury craftsmanship",
+      "Fast and responsive","Family-owned","Detail-focused"],notSure:true}),
+  Q("different","brand","long","What makes your business different from the other guys?"),
+  Q("why_choose","brand","long","Why do customers usually choose you over a competitor?"),
+  Q("three_words","brand","short","Give us 3 words that describe your business.",{placeholder:"e.g. honest, precise, dependable"}),
+  Q("not_sound","brand","long","What should your business NOT sound like?",{notSureBtn:true}),
+  Q("website_feel","brand","multi","How should the website feel?",{
+    options:["Premium","Rugged","Clean","Modern","Traditional","Friendly","Luxury","Simple"],notSure:true}),
+
+  // ---- 9) OFFERS / CONVERSION ----
+  Q("main_action","offers","single","What's the #1 action you want website visitors to take?",{
+    options:["Call","Request an estimate","Book a consultation","Submit project details","Upload photos"],notSure:true}),
+  Q("free_estimates","offers","single","Do you offer free estimates?",{options:["Yes","No"],notSure:true}),
+  Q("charge_consult","offers","single","Do you charge for consultations?",{options:["Yes","No","Sometimes"],notSure:true}),
+  Q("emergency_leads","offers","single","Do you want emergency / fast-response leads?",{options:["Yes","No"],notSure:true}),
+  Q("good_lead","offers","long","What makes someone a GOOD lead for you?"),
+  Q("bad_lead","offers","long","What makes someone a BAD lead?",{notSureBtn:true}),
+  Q("form_fields","offers","multi","What info should the contact form collect?",{
+    options:["Name","Phone","Email","Address","City","Service needed","Budget","Timeline","Project description","Photos"],notSure:true}),
+
+  // ---- 10) PROJECT DETAILS ----
+  Q("avg_project_size","project","short","What's your average project size (in dollars)?",{placeholder:"e.g. $45,000",notSureBtn:true}),
+  Q("smallest_project","project","short","What's the smallest project you'll accept?",{notSureBtn:true}),
+  Q("biggest_project","project","long","What's the biggest type of project you want MORE of?",{notSureBtn:true}),
+  Q("timeline_call_estimate","project","single","Typical time from first call to giving an estimate?",{
+    options:["Same day","1–3 days","Within a week","1–2 weeks","Varies"],notSure:true}),
+  Q("timeline_estimate_start","project","single","Typical time from accepted estimate to start date?",{
+    options:["Within a week","1–2 weeks","About a month","1–3 months","3+ months","Varies"],notSure:true}),
+  Q("help_design","project","single","Do you help with design?",{options:["Yes","No","Sometimes"],notSure:true}),
+  Q("help_materials","project","single","Do you help pick / supply materials?",{options:["Yes","No","Sometimes"],notSure:true}),
+  Q("help_permits","project","single","Do you help with permits?",{options:["Yes","No","Sometimes"],notSure:true}),
+  Q("financing","project","single","Do you offer financing?",{options:["Yes","No"],notSure:true}),
+  Q("work_with_architects","project","single","Do you work with architects or designers?",{options:["Yes","No","Sometimes"],notSure:true}),
+  Q("project_management","project","single","Do you handle full project management?",{options:["Yes","No","Sometimes"],notSure:true}),
+
+  // ---- 11) SALES PROCESS ----
+  Q("after_call","sales","long","What happens after someone calls you?",{placeholder:"Walk us through your steps"}),
+  Q("who_answers","sales","short","Who answers the phone?",{placeholder:"You? Office manager? Answering service?",notSureBtn:true}),
+  Q("response_speed","sales","single","How fast do you usually respond to a new lead?",{
+    options:["Immediately","Within an hour","Same day","Next day","Varies"],notSure:true}),
+  Q("use_text","sales","single","Do you text customers?",{options:["Yes","No"],notSure:true}),
+  Q("use_email","sales","single","Do you follow up by email?",{options:["Yes","No"],notSure:true}),
+  Q("use_crm","sales","single","Do you use a CRM to track leads?",{options:["Yes","No"],other:true,otherLabel:"Yes — which one?",notSure:true}),
+  Q("lead_delivery","sales","multi","Where should new leads be sent?",{
+    options:["Email","Phone / Text","Google Sheet","CRM","All of them"],notSure:true}),
+  Q("pre_estimate_questions","sales","long","What questions do you ask a customer before giving an estimate?",{notSureBtn:true}),
+  Q("reject_job","sales","long","What makes you reject a job?",{notSureBtn:true}),
+
+  // ---- 12) WEBSITE CONTENT ----
+  Q("has_logo","content","single","Do you already have a logo?",{options:["Yes","No"],notSure:true}),
+  Q("brand_colors","content","single","Do you have brand colors?",{options:["Yes","No"],notSure:true}),
+  Q("has_photos","content","single","Do you have your own project photos?",{options:["Yes, lots","Some","No"],notSure:true}),
+  Q("need_stock","content","single","Need stock photos temporarily while you build a library?",{options:["Yes","No"],notSure:true}),
+  Q("show_pricing","content","single","Do you want the website to show pricing?",{
+    options:["Yes","No","Starting-at prices only","Price ranges","“Call for estimate”"],notSure:true}),
+  Q("pages_needed","content","multi","What pages do you think you need?",{
+    options:["Home","About","Services","Service area pages","Projects / Gallery","Reviews","Contact","FAQ","Financing","Warranty","Careers"],notSure:true}),
+
+  // ---- 13) FAQ ----
+  Q("faq_questions","faq","long","What questions do customers ask before hiring you?",{notSureBtn:true}),
+  Q("customer_worries","faq","long","What do customers worry about most?",{notSureBtn:true}),
+  Q("objections","faq","long","What objections do you hear before they sign?",{notSureBtn:true}),
+  Q("ask_about","faq","multi","Which of these do customers usually ask about?",{
+    options:["Price","Permits","Timeline","Materials","Insurance","Warranty","Are you licensed?"],notSure:true}),
+
+  // ---- 14) COMPETITORS / INSPIRATION ----
+  Q("competitors_list","competitors","long","List up to 3 competitors.",{notSureBtn:true}),
+  Q("better_than","competitors","long","What do you do BETTER than them?"),
+  Q("they_better","competitors","long","What do they do better than you?",{notSureBtn:true}),
+  Q("sites_like","competitors","long","Any websites (any industry) you LIKE?",{notSureBtn:true}),
+  Q("sites_hate","competitors","long","Any websites you HATE?",{notSureBtn:true}),
+  Q("positioning","competitors","single","Do you want to look more premium, more local, or more affordable than competitors?",{
+    options:["More premium","More local / trusted","More affordable","About the same, just better"],notSure:true}),
+
+  // ---- 15) FINAL NOTES ----
+  Q("anything_else","final","long","Anything else we should know?",{notSureBtn:true}),
+  Q("services_avoid_showing","final","long","Any services you do NOT want shown on the site?",{notSureBtn:true}),
+  Q("cities_avoid","final","long","Any cities you do NOT want leads from?",{notSureBtn:true}),
+  Q("red_flags","final","long","Any red flags with past customers we should watch for?",{notSureBtn:true}),
+  Q("special_story","final","long","Any special story behind the business?",{notSureBtn:true}),
+  Q("unsure_help","final","long","Anything you're unsure about that you want help figuring out?",{notSureBtn:true}),
+
+  // ---- REVIEW + END ----
+  Q("__review__","", "review","Review your answers"),
+  Q("__end__","", "end","You're done!")
+];
+
+/* Per-service follow-up template (asked once per selected MAJOR service) */
+function serviceFollowups(service){
+  const slug = service.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+  return [
+    Q(`svc_${slug}_page`,"services","single",`${service}: do you want a dedicated website page for this?`,
+      {options:["Yes","No","Maybe"],notSure:true,svc:service}),
+    Q(`svc_${slug}_better`,"services","long",`${service}: what makes your work better than competitors?`,{svc:service}),
+    Q(`svc_${slug}_questions`,"services","long",`${service}: what do customers usually ask about this?`,{svc:service,notSureBtn:true}),
+    Q(`svc_${slug}_problems`,"services","long",`${service}: what problem do customers have before they hire you?`,{svc:service,notSureBtn:true})
+  ];
+}
+
+/* ============================================================
+   2) STATE + FLOW ENGINE (conditional logic lives here)
+   ============================================================ */
+
+const arr = v => Array.isArray(v) ? v : (v==null?[]:[v]);
+const state = { answers:{}, currentId:"welcome" };
+
+// rebuild the live, ordered list of cards based on current answers
+function buildFlow(){
+  const flow=[];
+  for(const item of QUESTIONS){
+    if(item.type==="service-loop"){
+      const picked = arr(state.answers.services).filter(s=>MAJOR_SERVICES.includes(s));
+      picked.forEach(s => serviceFollowups(s).forEach(q=>flow.push(q)));
+      continue;
+    }
+    if(item.condition && !item.condition(state.answers)) continue;
+    flow.push(item);
+  }
+  return flow;
+}
+const isMeta = t => ["welcome","review","end"].includes(t);
+
+/* ============================================================
+   3) RENDER
+   ============================================================ */
+
+const cardEl=document.getElementById("card");
+const navEl=document.getElementById("nav");
+const barEl=document.getElementById("bar");
+const countEl=document.getElementById("count");
+const toastEl=document.getElementById("toast");
+
+function currentQ(flow){ return flow.find(q=>q.id===state.currentId) || flow[0]; }
+
+function render(){
+  const flow=buildFlow();
+  let q=currentQ(flow);
+  if(!q){ state.currentId=flow[0].id; q=flow[0]; }
+
+  // progress (count only real questions)
+  const reals=flow.filter(x=>!isMeta(x.type));
+  const idx=reals.findIndex(x=>x.id===q.id);
+  const answeredCount=reals.filter(x=>hasAnswer(x.id)).length;
+  const pct = q.type==="end" ? 100 : Math.round((answeredCount/reals.length)*100);
+  barEl.style.width=pct+"%";
+  countEl.textContent = isMeta(q.type) ? "" : `${idx+1} / ${reals.length}`;
+
+  if(q.type==="welcome")  return renderWelcome(q);
+  if(q.type==="review")   return renderReview(q);
+  if(q.type==="end")      return renderEnd(q);
+  return renderQuestion(q,flow);
+}
+
+function renderWelcome(q){
+  cardEl.innerHTML=`
+    <div class="center">
+      <div class="emoji">\u{1F528}</div>
+      <h1 class="big-title">${q.label}</h1>
+      <p class="lead">${q.subtitle}</p>
+    </div>`;
+  navEl.innerHTML=`<span></span>
+    <button class="btn btn-primary btn-lg" onclick="go(1)">Start &rarr;</button>`;
+}
+
+function renderQuestion(q,flow){
+  const tag = q.section ? `<span class="section-tag">${SECTIONS[q.section]||""}</span>` : "";
+  let body="";
+  const a=state.answers[q.id];
+
+  if(["short","tel","email","url"].includes(q.type)){
+    const map={short:"text",tel:"tel",email:"email",url:"url"};
+    body=`<input id="inp" type="${map[q.type]}" placeholder="${q.placeholder||""}"
+            value="${escAttr(a)}" oninput="setVal('${q.id}',this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();go(1)}" autofocus>`;
+  }
+  else if(q.type==="long"){
+    body=`<textarea id="inp" placeholder="${q.placeholder||"Type your answer…"}"
+            oninput="setVal('${q.id}',this.value)">${escHtml(a)}</textarea>`;
+  }
+  else if(q.type==="single"||q.type==="multi"){
+    body=`<div class="options">${renderOptions(q)}</div>`;
+    if(q.other && (q.type==="multi" ? arr(a).includes("Other") : a==="Other")){
+      body+=`<input class="opt-other-input" id="otherinp" type="text"
+              placeholder="${q.otherLabel||"Tell us more…"}" value="${escAttr(state.answers[q.id+"_other"])}"
+              oninput="setVal('${q.id}_other',this.value)">`;
+    }
+  }
+
+  const help = q.help
+    ? `<p class="q-help${q.examples?" examples":""}">${q.help}</p>`
+    : "";
+
+  cardEl.innerHTML=`${tag}<h2 class="q-title">${q.label}</h2>${help}${body}`;
+  buildNav(q);
+  const inp=document.getElementById("inp"); if(inp) inp.focus();
+}
+
+function renderOptions(q){
+  const opts=[...(q.options||[])];
+  if(q.other) opts.push("Other");
+  const list=opts.map((label,i)=>optHTML(q,label,i,false));
+  if(q.notSure) list.push(optHTML(q,"I'm not sure",opts.length,true));
+  return list.join("");
+}
+function optHTML(q,label,i,notsure){
+  const a=state.answers[q.id];
+  const sel = q.type==="multi" ? arr(a).includes(label) : a===label;
+  const key = "ABCDEFGHIJKLMNOP"[i]||"";
+  return `<div class="opt${sel?" selected":""}${notsure?" notsure":""}"
+            onclick="pick('${q.id}','${q.type}','${escJs(label)}',${notsure})">
+            <span class="key">${notsure?"?":key}</span><span>${label}</span></div>`;
+}
+
+function buildNav(q){
+  const backBtn = `<button class="btn btn-ghost" onclick="go(-1)">&larr; Back</button>`;
+  const skip = q.notSureBtn
+    ? `<button class="btn btn-skip" onclick="markNotSure('${q.id}')">${q.skipLabel||"I'm not sure"}</button>` : "";
+  const nextDisabled = requiredMissing(q) ? "disabled" : "";
+  navEl.innerHTML=`${backBtn}
+    <div class="nav-right">
+      <span class="enter-hint">press <b>Enter</b> &crarr;</span>
+      ${skip}
+      <button class="btn btn-primary" ${nextDisabled} onclick="go(1)">OK &rarr;</button>
+    </div>`;
+}
+
+/* ----- Review screen ----- */
+function renderReview(){
+  const flow=buildFlow().filter(x=>!isMeta(x.type));
+  const groups={};
+  flow.forEach(q=>{ (groups[q.section]=groups[q.section]||[]).push(q); });
+  let html="";
+  for(const sec in groups){
+    html+=`<div class="review-group"><h3>${SECTIONS[sec]||sec}</h3>`;
+    groups[sec].forEach(q=>{
+      const ans=displayAnswer(q);
+      const unsure = ans==="I'm not sure" || ans==="—";
+      html+=`<div class="review-item">
+        <span class="ri-q">${q.label}</span>
+        <span class="ri-a ${unsure?"unsure":""}">${ans}
+          <button class="edit" onclick="jump('${q.id}')">edit</button></span>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  cardEl.innerHTML=`<span class="section-tag">Final step</span>
+    <h2 class="q-title">Review your answers</h2>
+    <p class="q-help">Check anything before you submit. “I'm not sure” items can be filled in later.</p>
+    ${html}`;
+  navEl.innerHTML=`<button class="btn btn-ghost" onclick="go(-1)">&larr; Back</button>
+    <button class="btn btn-primary" onclick="go(1)">Submit &rarr;</button>`;
+}
+
+/* ----- End screen ----- */
+function renderEnd(){
+  cardEl.innerHTML=`
+    <div class="center">
+      <div class="emoji">✅</div>
+      <h1 class="big-title">Thanks — that's everything we need.</h1>
+      <p class="lead">This gives us what we need to build a strong carpenter / home builder
+        marketing plan. Anything marked “I'm not sure” can be filled in later.</p>
+      <div class="grid-btns" style="max-width:460px;margin:0 auto">
+        <button class="btn btn-primary" onclick="copyJSON()">\u{1F4CB} Copy answers (JSON)</button>
+        <button class="btn btn-skip" onclick="copyPrompt()">✨ Generate strategy prompt</button>
+      </div>
+      <textarea class="output-box" id="out" placeholder="Your copied output will preview here…" readonly></textarea>
+      <div class="toolbar" style="justify-content:center">
+        <button class="btn btn-ghost" onclick="go(-1)">&larr; Back to review</button>
+        <button class="btn btn-ghost" onclick="downloadJSON()">⬇ Download JSON</button>
+      </div>
+    </div>`;
+  navEl.innerHTML="";
+}
+
+/* ============================================================
+   4) INTERACTIONS
+   ============================================================ */
+
+function pick(id,type,label,notsure){
+  if(type==="single"){
+    state.answers[id]= notsure ? "I'm not sure" : label;
+    save();
+    // auto-advance on single-select (Typeform feel), small delay for feedback
+    setTimeout(()=>go(1),160);
+    render(); return;
+  }
+  // multi
+  let cur=arr(state.answers[id]);
+  if(notsure){ state.answers[id]=["I'm not sure"]; }
+  else{
+    cur=cur.filter(x=>x!=="I'm not sure");
+    cur.includes(label) ? cur=cur.filter(x=>x!==label) : cur.push(label);
+    state.answers[id]=cur;
+  }
+  save(); render();
+}
+function setVal(id,val){ state.answers[id]=val; save(); refreshNext(); }
+function markNotSure(id){ state.answers[id]="I'm not sure"; save(); go(1); }
+
+function refreshNext(){
+  const flow=buildFlow(); const q=currentQ(flow);
+  const btn=navEl.querySelector(".btn-primary");
+  if(btn) btn.disabled=requiredMissing(q);
+}
+
+function go(dir){
+  const flow=buildFlow();
+  const i=flow.findIndex(q=>q.id===state.currentId);
+  const q=flow[i];
+  if(dir>0 && q && requiredMissing(q)) { flash("Please answer or tap “I'm not sure”"); return; }
+  const ni=Math.min(Math.max(i+dir,0),flow.length-1);
+  state.currentId=flow[ni].id;
+  window.scrollTo(0,0);
+  render();
+}
+function jump(id){ state.currentId=id; render(); window.scrollTo(0,0); }
+
+/* required = real, non-text-with-skip questions must have a value */
+function requiredMissing(q){
+  if(!q || isMeta(q.type)) return false;
+  if(q.notSureBtn) return false;            // optional / skippable
+  if(q.id==="website"||q.id==="license_number") return false;
+  return !hasAnswer(q.id);
+}
+function hasAnswer(id){
+  const v=state.answers[id];
+  return !(v==null || v==="" || (Array.isArray(v)&&v.length===0));
+}
+
+/* ============================================================
+   5) ANSWER DISPLAY + EXPORTS
+   ============================================================ */
+
+function displayAnswer(q){
+  let v=state.answers[q.id];
+  if(v==null||v===""||(Array.isArray(v)&&!v.length)) return "—";
+  if(Array.isArray(v)){
+    v=v.map(x=> x==="Other" ? "Other: "+(state.answers[q.id+"_other"]||"…") : x);
+    return v.join(", ");
+  }
+  if(v==="Other") return "Other: "+(state.answers[q.id+"_other"]||"…");
+  return String(v);
+}
+
+/* clean JSON object grouped by section */
+function buildJSON(){
+  const flow=buildFlow().filter(x=>!isMeta(x.type));
+  const out={ meta:{ form:"Carpenter / Home Builder Business Intake", generated:new Date().toISOString() }, answers:{} };
+  for(const sec in SECTIONS) out.answers[sec]={};
+  flow.forEach(q=>{
+    let v=state.answers[q.id];
+    if(v==="Other") v={other:state.answers[q.id+"_other"]||""};
+    else if(Array.isArray(v) && v.includes("Other"))
+      v={selected:v.filter(x=>x!=="Other"),other:state.answers[q.id+"_other"]||""};
+    out.answers[q.section] ||= {};
+    out.answers[q.section][q.id]={ q:q.label, a: v ?? null };
+  });
+  return out;
+}
+
+/* ---- strategy prompt template ---- */
+function buildPrompt(){
+  const flow=buildFlow().filter(x=>!isMeta(x.type));
+  const groups={};
+  flow.forEach(q=>{ (groups[q.section]=groups[q.section]||[]).push(q); });
+  let brief="";
+  for(const sec in groups){
+    brief+=`\n## ${SECTIONS[sec]}\n`;
+    groups[sec].forEach(q=>{
+      const a=displayAnswer(q);
+      brief+=`- ${q.label} ${a==="—"?"(not provided)":(a==="I'm not sure"?"(TBD — needs research)":"→ "+a)}\n`;
+    });
+  }
+  const name=state.answers.biz_name||"this business";
+  const city=state.answers.main_city||state.answers.city_state||"their market";
+  return `You are a senior marketing strategist for home-service contractors.
+Using the intake answers below, create a complete digital marketing plan for ${name} (primary market: ${city}).
+
+Anything marked "(TBD — needs research)" or "(not provided)": make a smart, clearly-labeled assumption and add it to a "Questions to confirm" list — do not stall.
+
+Deliver:
+1. Brand messaging — positioning statement, tagline options, 3-word personality, tone-of-voice rules, and what to avoid sounding like.
+2. Website plan — sitemap (pages to build), homepage section-by-section wireframe with headline + subhead copy, and primary CTA.
+3. Service pages — for each major service: H1, intro, "why us" bullets, FAQ, and CTA.
+4. Local SEO — Google Business Profile optimization (categories, services, description), target keywords, and a city-page strategy with a template.
+5. Sales copy — hero, offer, trust/proof section, and objection-handling FAQ built from their real customer questions.
+6. Lead-generation strategy — lead-capture form fields, lead routing, response-time SOP, and follow-up cadence (text + email).
+7. Offers — the primary conversion offer and CTA wording matched to their goal action.
+8. 90-day priority roadmap.
+
+Write in plain, contractor-friendly language. Don't invent reviews, prices, or results.
+
+=== INTAKE ANSWERS ===${brief}`;
+}
+
+/* ---- buttons ---- */
+function copyJSON(){ const t=JSON.stringify(buildJSON(),null,2); preview(t); clip(t,"Answers (JSON) copied!"); }
+function copyPrompt(){ const t=buildPrompt(); preview(t); clip(t,"Strategy prompt copied!"); }
+function downloadJSON(){
+  const blob=new Blob([JSON.stringify(buildJSON(),null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=(state.answers.biz_name||"intake").replace(/[^a-z0-9]+/gi,"_").toLowerCase()+"_intake.json";
+  a.click();
+}
+function preview(t){ const o=document.getElementById("out"); if(o) o.value=t; }
+function clip(t,msg){ navigator.clipboard?.writeText(t).then(()=>flash(msg),()=>flash("Copied to box below — select & copy")); }
+
+/* ============================================================
+   6) UTILITIES + BOOT
+   ============================================================ */
+function flash(msg){ toastEl.textContent=msg; toastEl.classList.add("show"); setTimeout(()=>toastEl.classList.remove("show"),1800); }
+function escHtml(s){ return (s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function escAttr(s){ return (s==null?"":String(s)).replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+function escJs(s){ return (s==null?"":String(s)).replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
+function save(){ try{ localStorage.setItem("carpenterIntake",JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const s=localStorage.getItem("carpenterIntake"); if(s){ const p=JSON.parse(s); state.answers=p.answers||{}; state.currentId=p.currentId||"welcome"; } }catch(e){} }
+
+// keyboard: A/B/C... to pick single options
+document.addEventListener("keydown",e=>{
+  const flow=buildFlow(); const q=currentQ(flow);
+  if(!q||document.activeElement.tagName==="TEXTAREA"||document.activeElement.tagName==="INPUT") return;
+  if(q.type==="single"){
+    const k=e.key.toUpperCase(); const i="ABCDEFGHIJKLMNOP".indexOf(k);
+    const opts=[...(q.options||[])]; if(q.other) opts.push("Other");
+    if(i>=0 && i<opts.length){ pick(q.id,"single",opts[i],false); }
+  }
+});
+
+load();
+render();
+</script>
+</body>
+</html>
