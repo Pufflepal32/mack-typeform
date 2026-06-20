@@ -184,6 +184,7 @@
 
   <div class="export-menu" id="exportMenu">
     <button onclick="closeExport();copyPrompt()">✨ Copy ChatGPT prompt</button>
+    <button onclick="closeExport();copySheet()">📄 Copy full question sheet</button>
     <button onclick="closeExport();downloadJSON()">⬇ Download all answers</button>
     <button onclick="closeExport();copyJSON()">📋 Copy answers (JSON)</button>
   </div>
@@ -756,6 +757,27 @@ Write in plain, contractor-friendly language. Don't invent reviews, prices, or r
 
 === INTAKE ANSWERS ===${brief}`;
 }
+
+/* ---- full readable question sheet (every Q, its options, and the answer) ---- */
+function buildSheet(){
+  const flow=buildFlow().filter(x=>!isMeta(x.type));
+  let out="CARPENTER / HOME BUILDER BUSINESS INTAKE\n"+"=".repeat(42)+"\n";
+  let lastSec=null;
+  flow.forEach(q=>{
+    if(q.section!==lastSec){ lastSec=q.section; out+=`\n\n## ${SECTIONS[q.section]||q.section}\n`; }
+    out+=`\nQ: ${q.label}\n`;
+    if((q.type==="single"||q.type==="multi") && q.options){
+      const opts=[...q.options];
+      if(q.other) opts.push("Other");
+      if(q.notSure) opts.push("I'm not sure");
+      out+=`   Options: ${opts.join(" | ")}\n`;
+    }
+    const a=displayAnswer(q);
+    out+=`A: ${a==="—" ? "(not answered)" : a}\n`;
+  });
+  return out;
+}
+function copySheet(){ const t=buildSheet(); preview(t); clip(t,"Full question sheet copied!"); }
 
 /* ---- buttons ---- */
 function copyJSON(){ const t=JSON.stringify(buildJSON(),null,2); preview(t); clip(t,"Answers (JSON) copied!"); }
