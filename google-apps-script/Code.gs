@@ -32,7 +32,7 @@ function doPost(e) {
     var status = meta.status || 'complete';   // 'partial' (live save) or 'complete' (submitted)
 
     // ----- header row (auto-grows with new questions) -----
-    var BASE = ['timestamp', 'status', 'sessionId', 'business_name'];
+    var BASE = ['timestamp', 'status', 'sessionId', 'business_name', 'answers_for_gpt'];
     var headers = sheet.getLastRow() === 0
       ? []
       : sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
@@ -55,6 +55,7 @@ function doPost(e) {
       if (h === 'status') return status;
       if (h === 'sessionId') return sessionId;
       if (h === 'business_name') return flat['biz_name'] || '';
+      if (h === 'answers_for_gpt') return meta.summary || '';
       return flat[h] !== undefined ? flat[h] : '';
     });
 
@@ -115,4 +116,65 @@ function json(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ============================================================
+   In-sheet menu: copy one person's answers to paste into GPT.
+   Appears as "📋 Intake Tools" after you reload the sheet.
+   ============================================================ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('📋 Intake Tools')
+    .addItem('Copy selected row for GPT', 'copyRowForGpt')
+    .addToUi();
+}
+
+function copyRowForGpt() {
+  var ui = SpreadsheetApp.getUi();
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var row = sheet.getActiveRange().getRow();
+  if (row < 2) {
+    ui.alert('Click any cell in a submission row first (row 2 or below), then run this again.');
+    return;
+  }
+  var lastCol = sheet.getLastColumn();
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var values  = sheet.getRange(row, 1, 1, lastCol).getValues()[0];
+
+  // Prefer the pre-formatted answers_for_gpt cell; otherwise build from columns.
+  var gptCol = headers.indexOf('answers_for_gpt');
+  var text;
+  if (gptCol !== -1 && values[gptCol]) {
+    text = String(values[gptCol]);
+  } else {
+    var skip = ['answers_for_gpt', 'sessionId', 'status'];
+    var lines = [];
+    for (var i = 0; i < headers.length; i++) {
+      if (skip.indexOf(headers[i]) !== -1) continue;
+      if (values[i] !== '' && values[i] !== null) lines.push(headers[i] + ': ' + values[i]);
+    }
+    text = lines.join('\n');
+  }
+  showCopyDialog(text, values[headers.indexOf('business_name')] || ('Row ' + row));
+}
+
+function showCopyDialog(text, title) {
+  var safe = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  var html = HtmlService.createHtmlOutput(
+    '<div style="font-family:Arial,sans-serif">' +
+    '<p style="margin:0 0 8px;color:#555">Select-all is done for you — just click <b>Copy</b>, then paste into GPT.</p>' +
+    '<textarea id="t" style="width:100%;height:300px;font-family:monospace;font-size:12px;' +
+    'border:1px solid #ccc;border-radius:8px;padding:8px;box-sizing:border-box">' + safe + '</textarea>' +
+    '<div style="margin-top:10px">' +
+    '<button onclick="copyIt()" style="background:#1f6feb;color:#fff;border:none;border-radius:8px;' +
+    'padding:10px 18px;font-size:14px;cursor:pointer">Copy</button> ' +
+    '<button onclick="google.script.host.close()" style="background:#eee;border:none;border-radius:8px;' +
+    'padding:10px 18px;font-size:14px;cursor:pointer">Close</button>' +
+    '<span id="ok" style="margin-left:10px;color:#16a34a;font-weight:bold"></span>' +
+    '</div></div>' +
+    '<script>function copyIt(){var t=document.getElementById("t");t.select();' +
+    'document.execCommand("copy");document.getElementById("ok").textContent="Copied!";}' +
+    'window.onload=function(){document.getElementById("t").select();};<\/script>'
+  ).setWidth(560).setHeight(420);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Copy answers for GPT — ' + title);
 }

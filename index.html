@@ -710,7 +710,8 @@ function displayAnswer(q){
 function buildJSON(status){
   const flow=buildFlow().filter(x=>!isMeta(x.type));
   const out={ meta:{ form:"Carpenter / Home Builder Business Intake",
-    sessionId:getSessionId(), status:status||"complete", generated:new Date().toISOString() }, answers:{} };
+    sessionId:getSessionId(), status:status||"complete", generated:new Date().toISOString(),
+    summary:buildSheet() }, answers:{} };
   for(const sec in SECTIONS) out.answers[sec]={};
   flow.forEach(q=>{
     let v=state.answers[q.id];
