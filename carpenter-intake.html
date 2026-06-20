@@ -213,10 +213,10 @@ const QUESTIONS = [
   Q("expand_areas","basics","long","Any new areas you want to expand into?",{placeholder:"Where would you like more leads from?",notSureBtn:true}),
 
   // ---- 3) BUSINESS TYPE ----
-  Q("biz_type","type","single","Which best describes your business?",{
+  Q("biz_type","type","multi","Which of these describe your business? (Pick all that apply)",{
     options:["Custom home builder","General contractor","Finish carpenter","Framing carpenter",
       "Deck builder","Remodeler","Trim / interior carpenter","Cabinet / built-in specialist"],
-    other:true,notSure:true}),
+    other:true,notSure:true,help:"Most contractors wear a few hats — pick everything that fits."}),
   Q("res_or_comm","type","single","Do you focus more on residential or commercial?",{
     options:["Mostly residential","Mostly commercial","Both equally"],notSure:true}),
   Q("new_or_remodel","type","single","Do you work on new construction, remodeling, or both?",{
@@ -362,8 +362,9 @@ const QUESTIONS = [
   Q("they_better","competitors","long","What do they do better than you?",{notSureBtn:true}),
   Q("sites_like","competitors","long","Any websites (any industry) you LIKE?",{notSureBtn:true}),
   Q("sites_hate","competitors","long","Any websites you HATE?",{notSureBtn:true}),
-  Q("positioning","competitors","single","Do you want to look more premium, more local, or more affordable than competitors?",{
-    options:["More premium","More local / trusted","More affordable","About the same, just better"],notSure:true}),
+  Q("positioning","competitors","multi","How do you want to come across vs. competitors? (Pick all that apply)",{
+    options:["More premium","More local / trusted","More affordable","About the same, just better"],notSure:true,
+    help:"Plenty of builders aim for more than one — e.g. premium AND local."}),
 
   // ---- 15) FINAL NOTES ----
   Q("anything_else","final","long","Anything else we should know?",{notSureBtn:true}),
