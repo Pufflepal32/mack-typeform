@@ -138,6 +138,7 @@
   .review-item .ri-a{font-weight:600;font-size:15px;text-align:right;max-width:45%}
   .review-item .ri-a.unsure{color:#b45309;font-weight:600}
   .review-item .edit{background:none;border:none;color:var(--brand);font-size:13px;cursor:pointer;font-weight:600}
+  .submit-status{display:none;max-width:460px;margin:0 auto 16px;padding:12px 16px;border-radius:12px;font-size:15px;font-weight:600;text-align:left}
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
   .toast{
     position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
@@ -394,7 +395,13 @@ function serviceFollowups(service){
    ============================================================ */
 
 const arr = v => Array.isArray(v) ? v : (v==null?[]:[v]);
-const state = { answers:{}, currentId:"welcome" };
+
+/* ---- Google Sheets webhook ----
+   Paste your deployed Apps Script /exec URL between the quotes.
+   See google-apps-script/SETUP.md. Leave blank to disable (local-only). */
+const WEBHOOK_URL = "";
+
+const state = { answers:{}, currentId:"welcome", submitState:"idle" };
 
 // rebuild the live, ordered list of cards based on current answers
 function buildFlow(){
@@ -540,7 +547,7 @@ function renderReview(){
     <p class="q-help">Check anything before you submit. “I'm not sure” items can be filled in later.</p>
     ${html}`;
   navEl.innerHTML=`<button class="btn btn-ghost" onclick="go(-1)">&larr; Back</button>
-    <button class="btn btn-primary" onclick="go(1)">Submit &rarr;</button>`;
+    <button class="btn btn-primary" onclick="submitForm()">Submit &rarr;</button>`;
 }
 
 /* ----- End screen ----- */
@@ -551,6 +558,7 @@ function renderEnd(){
       <h1 class="big-title">Thanks — that's everything we need.</h1>
       <p class="lead">This gives us what we need to build a strong carpenter / home builder
         marketing plan. Anything marked “I'm not sure” can be filled in later.</p>
+      <div id="submitStatus" class="submit-status"></div>
       <div class="grid-btns" style="max-width:460px;margin:0 auto">
         <button class="btn btn-primary" onclick="copyJSON()">\u{1F4CB} Copy answers (JSON)</button>
         <button class="btn btn-skip" onclick="copyPrompt()">✨ Generate strategy prompt</button>
@@ -562,6 +570,41 @@ function renderEnd(){
       </div>
     </div>`;
   navEl.innerHTML="";
+  setEndStatus(state.submitState);
+}
+
+/* POST the answers to the Google Sheets webhook, then show the end screen. */
+async function submitForm(){
+  state.currentId="__end__";
+  state.submitState = WEBHOOK_URL ? "sending" : "local";
+  render(); window.scrollTo(0,0);
+  if(!WEBHOOK_URL) return;                 // no webhook configured -> manual export only
+  try{
+    await fetch(WEBHOOK_URL,{
+      method:"POST",
+      mode:"no-cors",                      // Apps Script: simple request, no CORS preflight
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify(buildJSON())
+    });
+    state.submitState="success";
+  }catch(e){
+    state.submitState="error";
+  }
+  setEndStatus(state.submitState);
+}
+
+function setEndStatus(s){
+  const el=document.getElementById("submitStatus"); if(!el) return;
+  const map={
+    sending:["⏳","Sending your answers to the office…","#1657c0","#eaf1ff"],
+    success:["✅","Sent! Your answers are saved. We'll be in touch.","#166534","#dcfce7"],
+    error:["⚠️","Couldn't auto-send. Please tap “Download JSON” below and email it to us.","#92400e","#fef3c7"],
+    local:["💾","Saved on this device. Tap “Copy” or “Download JSON” below to send it over.","#374151","#f3f4f6"]
+  };
+  const m=map[s]; if(!m){ el.style.display="none"; return; }
+  el.style.display="block";
+  el.style.color=m[2]; el.style.background=m[3];
+  el.textContent=`${m[0]}  ${m[1]}`;
 }
 
 /* ============================================================

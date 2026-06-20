@@ -24,6 +24,20 @@ form is never a dead end.
 - Answers autosave to the browser (`localStorage`)
 - Review screen with inline edit links before submitting
 - **Copy answers (JSON)**, **Download JSON**, and **Generate strategy prompt** buttons
+- **Submissions post straight to a Google Sheet** (optional webhook — see below)
+
+## Send submissions to Google Sheets
+
+The form can POST each completed intake to a free **Google Apps Script web app**, which
+writes one row per submission into a Google Sheet you own — no server, no cost.
+
+1. Follow [`google-apps-script/SETUP.md`](./google-apps-script/SETUP.md) (~90 seconds)
+   to deploy the webhook and get its `/exec` URL.
+2. Paste that URL into `WEBHOOK_URL` near the top of the `<script>` block in `index.html`.
+3. Commit and push — Netlify redeploys automatically.
+
+Leave `WEBHOOK_URL` blank to run in local-only mode (answers stay in the browser; the
+user copies/downloads the JSON manually).
 
 ## Run locally
 
